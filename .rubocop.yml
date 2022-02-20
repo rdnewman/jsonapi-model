@@ -1,0 +1,40 @@
+require:
+  - rubocop-performance
+
+AllCops:
+  NewCops: enable
+  SuggestExtensions: false
+
+Layout/AccessModifierIndentation:
+  Enabled: true
+  EnforcedStyle: outdent
+
+Layout/LineLength:
+  Max: 100
+
+Metrics/BlockLength:
+  Max: 25
+
+Style/Alias:
+  Enabled: true
+  EnforcedStyle: prefer_alias_method
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: never
+
+Style/PreferredHashMethods:
+  Enabled: true
+  EnforcedStyle: verbose
+
+Style/RegexpLiteral:
+  Enabled: true
+  EnforcedStyle: slashes
+  AllowInnerSlashes: true
+
+Style/SymbolArray:
+  Enabled: true
+  EnforcedStyle: brackets
+
+Style/WordArray:
+  Enabled: false

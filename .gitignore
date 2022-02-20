@@ -1,0 +1,23 @@
+# Ignore OS artifacts
+/.vscode
+/.DS_Store
+
+# Ignore bundler config.
+/.bundle
+
+# Ignore all  tempfiles.
+/tmp/*
+!/tmp/.keep
+
+# Ignore locally archived files
+/**/.archive/**/*
+
+# Ignore generated gem
+/jsonapi-model-*.gem
+
+# Ignore code coverage
+/coverage/**/*
+
+# Ignore documentation generation
+/.yardoc/**/*
+/doc/**/*
