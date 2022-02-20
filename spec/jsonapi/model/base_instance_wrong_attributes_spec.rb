@@ -1,29 +1,52 @@
 RSpec.describe JSONAPI::Model::Base, type: :model do
-  describe 'instance without validations and with missing attributes' do
-    subject(:object) { klass.new(missing_attributes) }
+  describe 'instance with validations and with wrong attributes' do
+    subject(:object) { klass.new(attributes) }
 
     include_context 'for base instance'
 
-    let(:klass) { unvalidating_klass }
+    let(:klass)      { validating_klass }
+    let(:attributes) { wrong_attributes }
+
+    describe 'upon new' do
+      it 'raises ActiveModel::UnknownAttributeError' do
+        expect { object }.to raise_error ActiveModel::UnknownAttributeError
+      end
+    end
+  end
+
+  describe 'instance without validations and with wrong attributes' do
+    subject(:object) { klass.new(attributes) }
+
+    include_context 'for base instance'
+
+    let(:klass)      { unvalidating_klass }
+    let(:attributes) { wrong_attributes }
+
+    describe 'upon new' do
+      it 'raises ActiveModel::UnknownAttributeError' do
+        expect { object }.to raise_error ActiveModel::UnknownAttributeError
+      end
+    end
+  end
+
+  describe 'instance with validations but with wrong attributes' do
+    subject(:object) { klass.new(attributes) }
+
+    include_context 'for base instance'
+
+    let(:klass)      { unconforming_klass }
+    let(:attributes) { wrong_attributes }
 
     describe 'upon new' do
       it 'has a name' do
-        expect(object.name).to eq missing_attributes[:name]
+        expect(object.name).to eq attributes[:name]
       end
 
-      it 'has a description' do
-        expect(object.description).to eq missing_attributes[:description]
+      it 'has a bad_key' do
+        expect(object.bad_key).to eq attributes[:bad_key]
       end
 
-      it 'has a short description' do
-        expect(object.short_description).to eq missing_attributes[:short_description]
-      end
-
-      it 'has submission details' do
-        expect(object.submission_details).to eq missing_attributes[:submission_details]
-      end
-
-      it 'is valid (because no validations have been specified)' do
+      it 'is valid' do
         expect(object.valid?).to eq true
       end
     end
@@ -32,7 +55,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       before do
         allow(klass.connection)
           .to receive(:post)
-          .and_return(MockClientError.descriptions_are_blank)
+          .and_return(MockApi::ClientError.bad_key)
       end
 
       it 'changes id for the object after an attempted #save' do
@@ -55,12 +78,32 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
     end
 
+    describe '#assign_attributes' do
+      context 'when attributes are given' do
+        let(:changed_attributes) do
+          {
+            bad_key: Faker::Lorem.words.join(' ')
+          }
+        end
+
+        it 'does not change :name' do
+          expect { object.assign_attributes(changed_attributes) }
+            .not_to change(object, :name)
+        end
+
+        it 'changes :bad_key' do
+          expect { object.assign_attributes(changed_attributes) }
+            .to change(object, :bad_key)
+        end
+      end
+    end
+
     describe '#save' do
       context 'for first time (create)' do
         before do
           allow(klass.connection)
             .to receive(:post)
-            .and_return(MockClientError.descriptions_are_blank)
+            .and_return(MockApi::ClientError.bad_key)
         end
 
         it 'returns false' do
@@ -94,37 +137,46 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
 
       context 'for existing record (update)' do
-        subject(:object) { klass.new(valid_attributes) } # so it can be persisted initially
+        subject(:object) { klass.find(persisted_id) } # an existing object
 
-        let(:changed_attributes) { missing_attributes }
-
-        let(:original_data) do
-          {
-            id: arbitrary_id,
-            attributes: valid_attributes
-          }
+        let(:persisted_id) do
+          valid_object = validating_klass.new(valid_attributes)
+          valid_object.save!
+          valid_object.id
         end
-
-        let(:changed_data) do
-          original_data.merge({ attributes: valid_attributes.merge(missing_attributes) })
-        end
+        let(:changed_attributes) { wrong_attributes }
 
         before do
-          allow(klass.connection)
+          allow(validating_klass.connection)
             .to receive(:post)
-            .and_return(MockSuccessful.created_resource(original_data[:id], original_data[:attributes]))
+            .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
 
           allow(klass.connection)
             .to receive(:put)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
+            .and_return(MockApi::ClientError.bad_key)
 
-          object.save
+          allow(klass.connection)
+            .to receive(:get)
+            .and_return(MockApi::Successful.resource(arbitrary_id, valid_attributes))
+
           original_object
           object.assign_attributes(changed_attributes)
         end
 
-        it 'returns true' do
-          expect(object.save).to eq true
+        it 'confirms subject was originally persisted before update attempt' do
+          expect(object.persisted?).to eq true
+        end
+
+        it "confirms subject's #name is to be changed by an update attempt" do
+          expect(object.name).not_to eq original_object.name
+        end
+
+        it 'confirms subject has a bad key to be updated' do
+          expect(object.bad_key).not_to be_nil
+        end
+
+        it 'returns false' do
+          expect(object.save).to eq false
         end
 
         it 'does not change id for the object' do
@@ -147,114 +199,68 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
           expect { object.save }.not_to change(object, :destroyed?).from(false)
         end
 
-        it 'can be retrieved later with the updated changes' do
+        it 'when retrieved later still contains the original data' do
           object.save
-
-          allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
-
-          expect(klass.find(object.id)).to eq object
-        end
-
-        it 'when retrieved later does not contain the original data' do
-          object.save
-
-          allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
-
-          expect(klass.find(object.id)).not_to eq original_object
+          expect(klass.find(object.id)).to eq original_object
         end
       end
     end
 
     describe '#save!' do
       context 'for first time (create)' do
-        before do
+        it 'raises RequestFailed error' do
           allow(klass.connection)
             .to receive(:post)
-            .and_return(MockClientError.descriptions_are_blank)
-        end
+            .and_return(MockApi::ClientError.bad_key)
 
-        it 'raises RequestFailed error' do
           expect { object.save! }
             .to raise_error JSONAPI::Model::Error::RequestFailed, /unprocessable_entity/
         end
       end
 
       context 'for existing record (update)' do
-        subject(:object) { klass.new(valid_attributes) } # so it can be persisted initially
+        subject(:object) { klass.find(persisted_id) } # an existing object
 
-        let(:changed_attributes) { missing_attributes }
-
-        let(:original_data) do
-          {
-            id: arbitrary_id,
-            attributes: valid_attributes
-          }
+        let(:persisted_id) do
+          valid_object = validating_klass.new(valid_attributes)
+          valid_object.save!
+          valid_object.id
         end
 
-        let(:changed_data) do
-          original_data.merge({ attributes: valid_attributes.merge(missing_attributes) })
-        end
+        let(:changed_attributes) { wrong_attributes }
 
         before do
-          allow(klass.connection)
+          allow(validating_klass.connection)
             .to receive(:post)
-            .and_return(MockSuccessful.created_resource(original_data[:id], original_data[:attributes]))
+            .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
 
           allow(klass.connection)
-            .to receive(:put)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
+            .to receive(:get)
+            .and_return(MockApi::Successful.resource(arbitrary_id, valid_attributes))
 
-          object.save!
           original_object
           object.assign_attributes(changed_attributes)
         end
 
-        it 'returns true' do
-          expect(object.save!).to eq true
+        it 'confirms subject was originally persisted before update attempt' do
+          expect(object.persisted?).to eq true
         end
 
-        it 'does not change id for the object' do
-          expect { object.save! }.not_to change(object, :id)
+        it "confirms subject's #name is to be changed by an update attempt" do
+          expect(object.name).not_to eq original_object.name
         end
 
-        it 'does not change the hash' do
-          expect { object.save! }.not_to change(object, :hash)
+        it 'confirms subject has a bad key to be updated' do
+          expect(object.bad_key).not_to be_nil
         end
 
-        it 'does not change the object from being regarded as not a new record' do
-          expect { object.save! }.not_to change(object, :new_record?).from(false)
-        end
-
-        it 'does not change the object from being regarded as persisted' do
-          expect { object.save! }.not_to change(object, :persisted?).from(true)
-        end
-
-        it 'does not change the object from being regarded as not destroyed' do
-          expect { object.save! }.not_to change(object, :destroyed?).from(false)
-        end
-
-        it 'can be retrieved later with the updated changes' do
-          object.save!
-
+        it 'raises RequestFailed error' do
           allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
+            .to receive(:put)
+            .and_return(MockApi::ClientError.bad_key)
 
-          expect(klass.find(object.id)).to eq object
-        end
-
-        it 'when retrieved later does not contain the original data' do
-          object.save!
-
-          allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
-
-          expect(klass.find(object.id)).not_to eq original_object
+          expect { object.save! }
+            .to raise_error JSONAPI::Model::Error::RequestFailed, /unprocessable_entity/
         end
       end
     end
@@ -291,7 +297,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         before do
           allow(klass.connection)
             .to receive(:post)
-            .and_return(MockClientError.descriptions_are_blank)
+            .and_return(MockApi::ClientError.bad_key)
 
           object.save
         end
@@ -334,7 +340,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         before do
           allow(klass.connection)
             .to receive(:post)
-            .and_return(MockClientError.descriptions_are_blank)
+            .and_return(MockApi::ClientError.bad_key)
 
           object.save
         end

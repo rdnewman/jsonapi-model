@@ -67,7 +67,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       it '.save! fails' do
         allow(klass.connection)
           .to receive(:post)
-          .and_return(MockClientError.bad_type)
+          .and_return(MockApi::ClientError.bad_type)
 
         expect { klass.new(valid_attributes).save! }
           .to raise_error JSONAPI::Model::Error::RequestFailed, /unprocessable_entity/
@@ -182,7 +182,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
           before do
             allow(object.connection)
               .to receive(:post)
-              .and_return(MockSuccessful.created_resource(arbitrary_id, valid_attributes))
+              .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
           end
 
           it 'confirms persistence does not match between before-saved and after-saved versions' do
@@ -228,7 +228,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
           before do
             allow(object.connection)
               .to receive(:post)
-              .and_return(MockSuccessful.created_resource(arbitrary_id, valid_attributes))
+              .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
           end
 
           it 'confirms persistence does not match between before-saved and after-saved versions' do
