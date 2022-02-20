@@ -33,7 +33,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       it 'raises FrozenError once object is persisted' do
         allow(klass.connection)
           .to receive(:post)
-          .and_return(MockSuccessful.created_resource(arbitrary_id, valid_attributes))
+          .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
         object.save
 
         expect { object.id = Faker::Internet.uuid }.to raise_error FrozenError
@@ -56,7 +56,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       before do
         allow(klass.connection)
           .to receive(:post)
-          .and_return(MockSuccessful.created_resource(arbitrary_id, valid_attributes))
+          .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
       end
 
       context 'for first time (create)' do
@@ -89,7 +89,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
           allow(klass.connection)
             .to receive(:get)
-            .and_return(MockSuccessful.resource(arbitrary_id, valid_attributes))
+            .and_return(MockApi::Successful.resource(arbitrary_id, valid_attributes))
 
           expect(klass.find(object.id)).to eq object
         end
@@ -110,11 +110,13 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         before do
           allow(klass.connection)
             .to receive(:post)
-            .and_return(MockSuccessful.created_resource(original_data[:id], original_data[:attributes]))
+            .and_return(
+              MockApi::Successful.created_resource(original_data[:id], original_data[:attributes])
+            )
 
           allow(klass.connection)
             .to receive(:put)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
+            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
 
           object.save
           original_object
@@ -150,7 +152,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
           allow(klass.connection)
             .to receive(:get)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
+            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
 
           expect(klass.find(object.id)).to eq object
         end
@@ -160,7 +162,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
           allow(klass.connection)
             .to receive(:get)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
+            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
 
           expect(klass.find(object.id)).not_to eq original_object
         end
@@ -172,7 +174,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         before do
           allow(klass.connection)
             .to receive(:post)
-            .and_return(MockSuccessful.created_resource(arbitrary_id, valid_attributes))
+            .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
         end
 
         it 'returns true' do
@@ -204,7 +206,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
           allow(klass.connection)
             .to receive(:get)
-            .and_return(MockSuccessful.resource(arbitrary_id, valid_attributes))
+            .and_return(MockApi::Successful.resource(arbitrary_id, valid_attributes))
 
           expect(klass.find(object.id)).to eq object
         end
@@ -225,11 +227,13 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         before do
           allow(klass.connection)
             .to receive(:post)
-            .and_return(MockSuccessful.created_resource(original_data[:id], original_data[:attributes]))
+            .and_return(
+              MockApi::Successful.created_resource(original_data[:id], original_data[:attributes])
+            )
 
           allow(klass.connection)
             .to receive(:put)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
+            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
 
           object.save!
           original_object
@@ -265,7 +269,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
           allow(klass.connection)
             .to receive(:get)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
+            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
 
           expect(klass.find(object.id)).to eq object
         end
@@ -275,7 +279,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
           allow(klass.connection)
             .to receive(:get)
-            .and_return(MockSuccessful.resource(changed_data[:id], changed_data[:attributes]))
+            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
 
           expect(klass.find(object.id)).not_to eq original_object
         end
@@ -314,11 +318,11 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         before do
           allow(klass.connection)
             .to receive(:post)
-            .and_return(MockSuccessful.created_resource(arbitrary_id, valid_attributes))
+            .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
 
           allow(klass.connection)
             .to receive(:delete)
-            .and_return(MockSuccessful.resource(arbitrary_id, valid_attributes))
+            .and_return(MockApi::Successful.resource(arbitrary_id, valid_attributes))
 
           object.save
         end
@@ -348,7 +352,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
           allow(klass.connection)
             .to receive(:get)
-            .and_return(MockClientError.not_found)
+            .and_return(MockApi::ClientError.not_found)
 
           expect { klass.find(object.id) }.to raise_error JSONAPI::Model::Error::NotFound
         end
@@ -371,11 +375,11 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         before do
           allow(klass.connection)
             .to receive(:post)
-            .and_return(MockSuccessful.created_resource(arbitrary_id, valid_attributes))
+            .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
 
           allow(klass.connection)
             .to receive(:delete)
-            .and_return(MockSuccessful.resource(arbitrary_id, valid_attributes))
+            .and_return(MockApi::Successful.resource(arbitrary_id, valid_attributes))
 
           object.save
         end
@@ -405,7 +409,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
           allow(klass.connection)
             .to receive(:get)
-            .and_return(MockClientError.not_found)
+            .and_return(MockApi::ClientError.not_found)
 
           expect { klass.find(object.id) }.to raise_error JSONAPI::Model::Error::NotFound
         end

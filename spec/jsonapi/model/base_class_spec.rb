@@ -12,6 +12,8 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
   let(:absent_id) { Faker::Internet.uuid }
 
+  let(:attributes) { build_attributes }
+
   def build_attributes
     {
       name: Faker::Lorem.words.join(' '),
@@ -21,23 +23,21 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
     }
   end
 
-  let(:attributes) { build_attributes }
-
   context 'for finding' do
     let(:created_id) { Faker::Internet.uuid }
 
-    context 'an existing object' do
+    context 'for an existing object' do
       let(:existing_id) { klass.create!(attributes) }
 
       before do
         allow(klass.connection)
           .to receive(:post)
-          .and_return(MockSuccessful.created_resource(created_id, attributes))
+          .and_return(MockApi::Successful.created_resource(created_id, attributes))
 
         allow(klass.connection)
           .to receive(:get)
           .with(path: Regexp.new("/v1/narratives#{/\/+/}#{valid_uuid_format}"))
-          .and_return(MockSuccessful.resource(created_id, attributes))
+          .and_return(MockApi::Successful.resource(created_id, attributes))
 
         existing_id
       end
@@ -56,7 +56,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         allow(klass.connection)
           .to receive(:get)
           .with(path: Regexp.new("/v1/narratives#{/\/+/}#{valid_uuid_format}"))
-          .and_return(MockClientError.not_found)
+          .and_return(MockApi::ClientError.not_found)
       end
 
       it '.find raises NotFound error' do
@@ -104,7 +104,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       before do
         allow(klass.connection)
           .to receive(:post)
-          .and_return(MockSuccessful.created_resource(created_id, attributes))
+          .and_return(MockApi::Successful.created_resource(created_id, attributes))
       end
 
       it 'returns an id of the created record' do
@@ -118,7 +118,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         allow(klass.connection)
           .to receive(:get)
           .with(path: Regexp.new("/v1/narratives#{/\/+/}#{valid_uuid_format}"))
-          .and_return(MockSuccessful.resource(created_id, attributes))
+          .and_return(MockApi::Successful.resource(created_id, attributes))
 
         expect(klass.find(id)).to be_a klass
       end
@@ -134,7 +134,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       it 'raises NotCreated when no data is passed for attributes' do
         allow(klass.connection)
           .to receive(:post)
-          .and_return(MockClientError.all_attributes_are_blank)
+          .and_return(MockApi::ClientError.all_attributes_are_blank)
 
         expect { klass.create }.to raise_error JSONAPI::Model::Error::NotCreated
       end
@@ -150,7 +150,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       before do
         allow(klass.connection)
           .to receive(:post)
-          .and_return(MockSuccessful.created_resource(created_id, attributes))
+          .and_return(MockApi::Successful.created_resource(created_id, attributes))
       end
 
       it 'returns an id of the created record' do
@@ -163,7 +163,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         allow(klass.connection)
           .to receive(:get)
           .with(path: Regexp.new("/v1/narratives#{/\/+/}#{valid_uuid_format}"))
-          .and_return(MockSuccessful.resource(created_id, attributes))
+          .and_return(MockApi::Successful.resource(created_id, attributes))
 
         expect(klass.find(id)).to be_a klass
       end
@@ -179,7 +179,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       it 'raises RequestFailed when no data is passed for attributes' do
         allow(klass.connection)
           .to receive(:post)
-          .and_return(MockClientError.all_attributes_are_blank)
+          .and_return(MockApi::ClientError.all_attributes_are_blank)
 
         expect { klass.create! }
           .to raise_error JSONAPI::Model::Error::RequestFailed, /unprocessable_entity/
@@ -191,7 +191,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
     end
   end
 
-  context 'on collections' do
+  context 'upon collections' do
     let(:raw_instance_data_set) do
       Array.new(3) do
         {
@@ -213,19 +213,19 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
     let(:mocked_individual_create_responses) do
       raw_instance_data_set.map do |raw_instance|
-        MockSuccessful.created_resource(raw_instance[:id], raw_instance[:attributes])
+        MockApi::Successful.created_resource(raw_instance[:id], raw_instance[:attributes])
       end
     end
 
     let(:mocked_individual_get_responses) do
       raw_instance_data_set.map do |raw_instance|
-        MockSuccessful.resource(raw_instance[:id], raw_instance[:attributes])
+        MockApi::Successful.resource(raw_instance[:id], raw_instance[:attributes])
       end
     end
 
     let(:mocked_individual_delete_responses) do
       raw_instance_data_set.map do |raw_instance|
-        MockSuccessful.resource(raw_instance[:id], raw_instance[:attributes])
+        MockApi::Successful.resource(raw_instance[:id], raw_instance[:attributes])
       end
     end
 
@@ -275,7 +275,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         allow(klass.connection)
           .to receive(:get)
           .with(path: '/v1/narratives/')
-          .and_return(MockSuccessful.empty_collection)
+          .and_return(MockApi::Successful.empty_collection)
 
         expect(all).to be_empty
       end
@@ -325,7 +325,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         allow(klass.connection)
           .to receive(:get)
           .with(path: '/v1/narratives/')
-          .and_return(MockSuccessful.empty_collection)
+          .and_return(MockApi::Successful.empty_collection)
         expect(klass.all).to be_empty
       end
 
@@ -358,7 +358,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         allow(klass.connection)
           .to receive(:get)
           .with(path: '/v1/narratives/')
-          .and_return(MockSuccessful.empty_collection)
+          .and_return(MockApi::Successful.empty_collection)
         expect(klass.destroy_all).to be_empty
       end
     end
@@ -371,8 +371,10 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
 
       it 'destroys each of records' do
-        expect(klass.connection).to receive(:delete).exactly(3).times
+        allow(klass.connection).to receive(:delete)
+
         klass.destroy_all!
+        expect(klass.connection).to have_received(:delete).exactly(3).times
       end
 
       it 'returns an Array that is not empty' do
@@ -395,7 +397,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         allow(klass.connection)
           .to receive(:get)
           .with(path: '/v1/narratives/')
-          .and_return(MockSuccessful.empty_collection)
+          .and_return(MockApi::Successful.empty_collection)
 
         expect(klass.all).to be_empty
       end
@@ -426,7 +428,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         allow(klass.connection)
           .to receive(:get)
           .with(path: '/v1/narratives/')
-          .and_return(MockSuccessful.empty_collection)
+          .and_return(MockApi::Successful.empty_collection)
 
         klass.destroy_all!
         expect(klass.destroy_all!).to be_empty
