@@ -4,19 +4,9 @@ require:
   - rubocop-performance
   - rubocop-rspec
 
-# Layout/SpaceBeforeBlockBraces:
-#   Enabled: false
-
-# Layout/SpaceInsideBlockBraces:
-#   Enabled: false
-
-# Lint/AmbiguousBlockAssociation:
-#   Enabled: false
-
-# Lint/UselessAssignment:
-#   Enabled: true
-#   Exclude:
-#   - ./simplecov_helper.rb
+Layout/FirstArrayElementIndentation:
+  Enabled: true
+  EnforcedStyle: consistent
 
 Metrics/BlockLength:
   Max: 250
@@ -28,18 +18,8 @@ RSpec/ContextWording:
   Enabled: true
   Prefixes: [when, with, without, if, where, for, as, after, upon]
 
-# RSpec/ExpectActual:
-#   Enabled: true
-#   Exclude:
-#   - routing/**/*
-
 RSpec/ExampleLength:
   Max: 10
-
-# RSpec/InstanceVariable:
-#   Enabled: true
-#   Exclude:
-#   - requests/application_spec.rb
 
 RSpec/MessageExpectation:
   Enabled: true
