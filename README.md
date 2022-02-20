@@ -1,3 +1,3 @@
 = README
 
-(for now, just testing verified commits)
+(for now, just retesting verified commits)
