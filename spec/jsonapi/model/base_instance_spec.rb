@@ -152,6 +152,17 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
     end
 
     describe 'equality' do
+      let(:other_object) do
+        klass.new(
+          {
+            name: Faker::Lorem.words.join(' '),
+            short_description: Faker::Lorem.words.join(' '),
+            description: Faker::Lorem.words.join(' '),
+            submission_details: Faker::Lorem.words.join(' ')
+          }
+        )
+      end
+
       describe 'using #==' do
         it 'matches itself' do
           # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
@@ -160,15 +171,6 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         end
 
         it 'does not match a different set of attributes' do
-          other_object = klass.new(
-            {
-              name: Faker::Lorem.words.join(' '),
-              short_description: Faker::Lorem.words.join(' '),
-              description: Faker::Lorem.words.join(' '),
-              submission_details: Faker::Lorem.words.join(' ')
-            }
-          )
-
           expect(object == other_object).to eq false
         end
 
@@ -206,15 +208,6 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         end
 
         it 'does not match a different set of attributes' do
-          other_object = klass.new(
-            {
-              name: Faker::Lorem.words.join(' '),
-              short_description: Faker::Lorem.words.join(' '),
-              description: Faker::Lorem.words.join(' '),
-              submission_details: Faker::Lorem.words.join(' ')
-            }
-          )
-
           expect(object.eql?(other_object)).to eq false
         end
 

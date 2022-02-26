@@ -106,34 +106,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
             .and_return(MockApi::ClientError.bad_key)
         end
 
-        it 'returns false' do
-          expect(object.save).to eq false
-        end
-
-        it 'does not change id for the object' do
-          expect { object.save }.not_to change(object, :id).from(nil)
-        end
-
-        it 'does not change the hash' do
-          expect { object.save }.not_to change(object, :hash)
-        end
-
-        it 'does not change the object from being regarded as a new record' do
-          expect { object.save }.not_to change(object, :new_record?).from(true)
-        end
-
-        it 'does not change the object from being regarded as not persisted' do
-          expect { object.save }.not_to change(object, :persisted?).from(false)
-        end
-
-        it 'does not change the object from being regarded as not destroyed' do
-          expect { object.save }.not_to change(object, :destroyed?).from(false)
-        end
-
-        it 'cannot be retrieved later' do
-          object.save
-          expect { klass.find(object.id) }.to raise_error JSONAPI::Model::Error::InvalidIdArgument
-        end
+        include_examples 'invalid initial save'
       end
 
       context 'for existing record (update)' do
@@ -267,29 +240,10 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
     describe '#destroy,' do
       context 'when not persisted,' do
-        it 'returns false' do
-          expect(object.destroy).to eq false
-        end
-
-        it 'does not change the object from being regarded as a new record' do
-          expect { object.destroy }.not_to change(object, :new_record?).from(true)
-        end
-
-        it 'does not change the object from being regarded as not persisted' do
-          expect { object.destroy }.not_to change(object, :persisted?).from(false)
-        end
-
-        it 'does not change the object from being regarded as not destroyed' do
-          expect { object.destroy }.not_to change(object, :destroyed?).from(false)
-        end
+        include_examples 'destroying record'
 
         it "does not change the object's id" do
           expect { object.destroy }.not_to change(object, :id).from(nil)
-        end
-
-        it 'can still change an attribute' do
-          object.destroy
-          expect { object.name = Faker::Lorem.words.join(' ') }.to change(object, :name)
         end
       end
 
@@ -302,29 +256,10 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
           object.save
         end
 
-        it 'returns false' do
-          expect(object.destroy).to eq false
-        end
-
-        it 'does not change the object from being regarded as a new record' do
-          expect { object.destroy }.not_to change(object, :new_record?).from(true)
-        end
-
-        it 'does not change the object from being regarded as not persisted' do
-          expect { object.destroy }.not_to change(object, :persisted?).from(false)
-        end
-
-        it 'does not change the object from being regarded as not destroyed' do
-          expect { object.destroy }.not_to change(object, :destroyed?).from(false)
-        end
+        include_examples 'destroying record'
 
         it "does not change the object's id" do
           expect { object.destroy }.not_to change(object, :id)
-        end
-
-        it 'can still change an attribute' do
-          object.destroy
-          expect { object.name = Faker::Lorem.words.join(' ') }.to change(object, :name)
         end
       end
     end
