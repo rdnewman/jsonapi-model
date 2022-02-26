@@ -52,7 +52,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
     end
 
-    describe '#save' do
+    context 'when saving' do
       before do
         allow(klass.connection)
           .to receive(:post)
@@ -60,38 +60,51 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
 
       context 'for first time (create)' do
-        it 'returns true' do
-          expect(object.save).to eq true
+        shared_examples 'saving new record' do |method|
+          # ex.: when method is `:save`, then
+          #   `object.send(method)` is the same as `object.save`
+
+          it 'returns true' do
+            expect(object.send(method)).to eq true
+          end
+
+          it 'changes id for the object' do
+            expect { object.send(method) }.to change(object, :id).from(nil)
+          end
+
+          it 'changes the hash' do
+            expect { object.send(method) }.to change(object, :hash)
+          end
+
+          it 'changes object to no longer being regarded as a new record' do
+            expect { object.send(method) }.to change(object, :new_record?).from(true).to(false)
+          end
+
+          it 'changes object to now being regarded as persisted' do
+            expect { object.send(method) }.to change(object, :persisted?).from(false).to(true)
+          end
+
+          it 'does not change the object from being regarded as not destroyed' do
+            expect { object.send(method) }.not_to change(object, :destroyed?).from(false)
+          end
+
+          it 'can be retrieved later' do
+            object.send(method)
+
+            allow(klass.connection)
+              .to receive(:get)
+              .and_return(MockApi::Successful.resource(arbitrary_id, valid_attributes))
+
+            expect(klass.find(object.id)).to eq object
+          end
         end
 
-        it 'changes id for the object' do
-          expect { object.save }.to change(object, :id).from(nil)
+        describe '#save' do
+          include_examples 'saving new record', :save
         end
 
-        it 'changes the hash' do
-          expect { object.save }.to change(object, :hash)
-        end
-
-        it 'changes object to no longer being regarded as a new record' do
-          expect { object.save }.to change(object, :new_record?).from(true).to(false)
-        end
-
-        it 'changes object to now being regarded as persisted' do
-          expect { object.save }.to change(object, :persisted?).from(false).to(true)
-        end
-
-        it 'does not change the object from being regarded as not destroyed' do
-          expect { object.save }.not_to change(object, :destroyed?).from(false)
-        end
-
-        it 'can be retrieved later' do
-          object.save
-
-          allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockApi::Successful.resource(arbitrary_id, valid_attributes))
-
-          expect(klass.find(object.id)).to eq object
+        describe '#save!' do
+          include_examples 'saving new record', :save!
         end
       end
 
@@ -116,201 +129,116 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
           allow(klass.connection)
             .to receive(:put)
-            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
-
-          object.save
-          original_object
-          object.assign_attributes(changed_attributes)
-        end
-
-        it 'returns true' do
-          expect(object.save).to eq true
-        end
-
-        it 'does not change id for the object' do
-          expect { object.save }.not_to change(object, :id)
-        end
-
-        it 'does not change the hash' do
-          expect { object.save }.not_to change(object, :hash)
-        end
-
-        it 'does not change the object from being regarded as not a new record' do
-          expect { object.save }.not_to change(object, :new_record?).from(false)
-        end
-
-        it 'does not change the object from being regarded as persisted' do
-          expect { object.save }.not_to change(object, :persisted?).from(true)
-        end
-
-        it 'does not change the object from being regarded as not destroyed' do
-          expect { object.save }.not_to change(object, :destroyed?).from(false)
-        end
-
-        it 'can be retrieved later with the updated changes' do
-          object.save
-
-          allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
-
-          expect(klass.find(object.id)).to eq object
-        end
-
-        it 'when retrieved later does not contain the original data' do
-          object.save
-
-          allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
-
-          expect(klass.find(object.id)).not_to eq original_object
-        end
-      end
-    end
-
-    describe '#save!' do
-      context 'for first time (create!)' do
-        before do
-          allow(klass.connection)
-            .to receive(:post)
-            .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
-        end
-
-        it 'returns true' do
-          expect(object.save!).to eq true
-        end
-
-        it 'changes id for the object' do
-          expect { object.save }.to change(object, :id).from(nil)
-        end
-
-        it 'changes the hash' do
-          expect { object.save }.to change(object, :hash)
-        end
-
-        it 'changes object to no longer being regarded as a new record' do
-          expect { object.save }.to change(object, :new_record?).from(true).to(false)
-        end
-
-        it 'changes object to now being regarded as persisted' do
-          expect { object.save }.to change(object, :persisted?).from(false).to(true)
-        end
-
-        it 'does not change the object from being regarded as not destroyed' do
-          expect { object.save }.not_to change(object, :destroyed?).from(false)
-        end
-
-        it 'can be retrieved later' do
-          object.save!
-
-          allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockApi::Successful.resource(arbitrary_id, valid_attributes))
-
-          expect(klass.find(object.id)).to eq object
-        end
-      end
-
-      context 'for existing record (update!)' do
-        let(:original_data) do
-          {
-            id: Faker::Internet.uuid,
-            attributes: valid_attributes
-          }
-        end
-
-        let(:changed_data) do
-          original_data.merge({ attributes: valid_attributes.merge(changed_attributes) })
-        end
-
-        before do
-          allow(klass.connection)
-            .to receive(:post)
             .and_return(
-              MockApi::Successful.created_resource(original_data[:id], original_data[:attributes])
+              MockApi::Successful.resource(changed_data[:id], changed_data[:attributes])
             )
-
-          allow(klass.connection)
-            .to receive(:put)
-            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
-
-          object.save!
-          original_object
-          object.assign_attributes(changed_attributes)
         end
 
-        it 'returns true' do
-          expect(object.save!).to eq true
+        shared_examples 'saving existing record' do |method|
+          # ex.: when method is `:save`, then
+          #   `object.send(method)` is the same as `object.save`
+
+          before do
+            # ensure record was previously saved
+            object.send(method)
+
+            # copy the original record away for safekeeping and change attributes to be saved
+            original_object
+            object.assign_attributes(changed_attributes)
+          end
+
+          it 'returns true' do
+            expect(object.send(method)).to eq true
+          end
+
+          it 'does not change id for the object' do
+            expect { object.send(method) }.not_to change(object, :id)
+          end
+
+          it 'does not change the hash' do
+            expect { object.send(method) }.not_to change(object, :hash)
+          end
+
+          it 'does not change the object from being regarded as not a new record' do
+            expect { object.send(method) }.not_to change(object, :new_record?).from(false)
+          end
+
+          it 'does not change the object from being regarded as persisted' do
+            expect { object.send(method) }.not_to change(object, :persisted?).from(true)
+          end
+
+          it 'does not change the object from being regarded as not destroyed' do
+            expect { object.send(method) }.not_to change(object, :destroyed?).from(false)
+          end
+
+          context 'when retrieved later' do
+            before do
+              # ensure changed attributes are saved (just as the specs above did)
+              object.send(method)
+
+              # ensure mock API returns the changed record
+              # NOTE: the specs are intended to ensure the local client responds
+              #   accordingly, NOT that the remote API behaved properly
+              allow(klass.connection)
+                .to receive(:get)
+                .and_return(
+                  MockApi::Successful.resource(changed_data[:id], changed_data[:attributes])
+                )
+            end
+
+            it 'has the updated changes' do
+              expect(klass.find(object.id)).to eq object
+            end
+
+            it 'does not contain the original data' do
+              expect(klass.find(object.id)).not_to eq original_object
+            end
+          end
         end
 
-        it 'does not change id for the object' do
-          expect { object.save! }.not_to change(object, :id)
+        describe '#save' do
+          include_examples 'saving existing record', :save
         end
 
-        it 'does not change the hash' do
-          expect { object.save! }.not_to change(object, :hash)
-        end
-
-        it 'does not change the object from being regarded as not a new record' do
-          expect { object.save! }.not_to change(object, :new_record?).from(false)
-        end
-
-        it 'does not change the object from being regarded as persisted' do
-          expect { object.save! }.not_to change(object, :persisted?).from(true)
-        end
-
-        it 'does not change the object from being regarded as not destroyed' do
-          expect { object.save! }.not_to change(object, :destroyed?).from(false)
-        end
-
-        it 'can be retrieved later with the updated changes' do
-          object.save!
-
-          allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
-
-          expect(klass.find(object.id)).to eq object
-        end
-
-        it 'when retrieved later does not contain the original data' do
-          object.save!
-
-          allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockApi::Successful.resource(changed_data[:id], changed_data[:attributes]))
-
-          expect(klass.find(object.id)).not_to eq original_object
+        describe '#save!' do
+          include_examples 'saving existing record', :save!
         end
       end
     end
 
-    describe '#destroy,' do
+    context 'when destroying' do
       context 'when not persisted,' do
-        it 'returns false' do
-          expect(object.destroy).to eq false
+        describe '#destroy' do
+          it 'returns false' do
+            expect(object.destroy).to eq false
+          end
+
+          it 'does not change the object from being regarded as a new record' do
+            expect { object.destroy }.not_to change(object, :new_record?).from(true)
+          end
+
+          it 'does not change the object from being regarded as not persisted' do
+            expect { object.destroy }.not_to change(object, :persisted?).from(false)
+          end
+
+          it 'does not change the object from being regarded as not destroyed' do
+            expect { object.destroy }.not_to change(object, :destroyed?).from(false)
+          end
+
+          it "does not change the object's id" do
+            expect { object.destroy }.not_to change(object, :id).from(nil)
+          end
+
+          it 'can still change an attribute' do
+            object.destroy
+            expect { object.name = Faker::Lorem.words.join(' ') }.to change(object, :name)
+          end
         end
 
-        it 'does not change the object from being regarded as a new record' do
-          expect { object.destroy }.not_to change(object, :new_record?).from(true)
-        end
-
-        it 'does not change the object from being regarded as not persisted' do
-          expect { object.destroy }.not_to change(object, :persisted?).from(false)
-        end
-
-        it 'does not change the object from being regarded as not destroyed' do
-          expect { object.destroy }.not_to change(object, :destroyed?).from(false)
-        end
-
-        it "does not change the object's id" do
-          expect { object.destroy }.not_to change(object, :id).from(nil)
-        end
-
-        it 'can still change an attribute' do
-          object.destroy
-          expect { object.name = Faker::Lorem.words.join(' ') }.to change(object, :name)
+        describe '#destroy!' do
+          it 'raises NotDestroyed error' do
+            expect { object.destroy! }.to raise_error JSONAPI::Model::Error::NotDestroyed
+          end
         end
       end
 
@@ -327,96 +255,52 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
           object.save
         end
 
-        it 'returns true' do
-          expect(object.destroy).to eq true
+        shared_examples 'destroying persisted record' do |method|
+          # ex.: when method is `:destroy`, then
+          #   `object.send(method)` is the same as `object.destroy`
+
+          it 'returns true' do
+            expect(object.send(method)).to eq true
+          end
+
+          it 'does not change the object from being regarded as not a new record' do
+            expect { object.send(method) }.not_to change(object, :new_record?).from(false)
+          end
+
+          it 'changes object to no longer being regarded as persisted' do
+            expect { object.send(method) }.to change(object, :persisted?).from(true).to(false)
+          end
+
+          it 'changes object to now being regarded as destroyed' do
+            expect { object.send(method) }.to change(object, :destroyed?).from(false).to(true)
+          end
+
+          it "does not change the object's id" do
+            expect { object.send(method) }.not_to change(object, :id)
+          end
+
+          it 'cannot be retrieved later' do
+            object.send(method)
+
+            allow(klass.connection)
+              .to receive(:get)
+              .and_return(MockApi::ClientError.not_found)
+
+            expect { klass.find(object.id) }.to raise_error JSONAPI::Model::Error::NotFound
+          end
+
+          it 'prohibits later changes to an attribute' do
+            object.send(method)
+            expect { object.name = Faker::Lorem.words.join(' ') }.to raise_error FrozenError
+          end
         end
 
-        it 'does not change the object from being regarded as not a new record' do
-          expect { object.destroy }.not_to change(object, :new_record?).from(false)
+        describe '#destroy' do
+          include_examples 'destroying persisted record', :destroy
         end
 
-        it 'changes object to no longer being regarded as persisted' do
-          expect { object.destroy }.to change(object, :persisted?).from(true).to(false)
-        end
-
-        it 'changes object to now being regarded as destroyed' do
-          expect { object.destroy }.to change(object, :destroyed?).from(false).to(true)
-        end
-
-        it "does not change the object's id" do
-          expect { object.destroy }.not_to change(object, :id)
-        end
-
-        it 'cannot be retrieved later' do
-          object.destroy
-
-          allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockApi::ClientError.not_found)
-
-          expect { klass.find(object.id) }.to raise_error JSONAPI::Model::Error::NotFound
-        end
-
-        it 'prohibits later changes to an attribute' do
-          object.destroy
-          expect { object.name = Faker::Lorem.words.join(' ') }.to raise_error FrozenError
-        end
-      end
-    end
-
-    describe '#destroy!,' do
-      context 'when not persisted,' do
-        it 'raises NotDestroyed error' do
-          expect { object.destroy! }.to raise_error JSONAPI::Model::Error::NotDestroyed
-        end
-      end
-
-      context 'when already persisted,' do
-        before do
-          allow(klass.connection)
-            .to receive(:post)
-            .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
-
-          allow(klass.connection)
-            .to receive(:delete)
-            .and_return(MockApi::Successful.resource(arbitrary_id, valid_attributes))
-
-          object.save
-        end
-
-        it 'returns true' do
-          expect(object.destroy!).to eq true
-        end
-
-        it 'does not change the object from being regarded as not a new record' do
-          expect { object.destroy! }.not_to change(object, :new_record?).from(false)
-        end
-
-        it 'changes object to no longer being regarded as persisted' do
-          expect { object.destroy! }.to change(object, :persisted?).from(true).to(false)
-        end
-
-        it 'changes object to now being regarded as destroyed' do
-          expect { object.destroy! }.to change(object, :destroyed?).from(false).to(true)
-        end
-
-        it "does not change the object's id" do
-          expect { object.destroy! }.not_to change(object, :id)
-        end
-
-        it 'cannot be retrieved later' do
-          object.destroy!
-
-          allow(klass.connection)
-            .to receive(:get)
-            .and_return(MockApi::ClientError.not_found)
-
-          expect { klass.find(object.id) }.to raise_error JSONAPI::Model::Error::NotFound
-        end
-
-        it 'prohibits later changes to an attribute' do
-          object.destroy!
-          expect { object.name = Faker::Lorem.words.join(' ') }.to raise_error FrozenError
+        describe '#destroy!' do
+          include_examples 'destroying persisted record', :destroy!
         end
       end
     end
