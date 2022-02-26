@@ -31,16 +31,6 @@ RSpec.shared_context 'for base instance' do
       serialize_as :narrative
 
       attr_accessor :name, :short_description, :description, :submission_details
-
-      # # this is only for testing with validations when anonymous classes are involved;
-      # # defining this method is not typically needed in regular use
-      # def self.model_name
-      #   ActiveModel::Name.new(
-      #     self,
-      #     nil,
-      #     "#{File.basename(__FILE__, '.rb')}_unvalidating_klass"
-      #   )
-      # end
     end
   end
 
@@ -51,16 +41,6 @@ RSpec.shared_context 'for base instance' do
       serialize_as :narrative
 
       attr_accessor :bad_key, :name, :short_description, :description, :submission_details
-
-      # # this is only for testing with validations when anonymous classes are involved;
-      # # defining this method is not typically needed in regular use
-      # def self.model_name
-      #   ActiveModel::Name.new(
-      #     self,
-      #     nil,
-      #     "#{File.basename(__FILE__, '.rb')}_unconforming_klass"
-      #   )
-      # end
     end
   end
 

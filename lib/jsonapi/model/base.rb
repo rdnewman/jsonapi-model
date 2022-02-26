@@ -21,13 +21,7 @@ module JSONAPI
           raise Error::NoEndpointDefined unless respond_to?(:endpoint)
           raise Error::InvalidIdArgument unless id.is_a?(String) && id&.match?(VALID_UUID_REGEXP)
 
-# puts "---------"
-# puts "[find] id: #{id}"
-# puts "[find] path: #{endpoint}/#{id}"
-# x = connection.get(path: "#{endpoint}/#{id}")
-# pp x
           new(parse(connection.get(path: "#{endpoint}/#{id}"))).tap do |obj|
-# new(parse(x)).tap do |obj|
             obj.__send__(:exists!)
           end
         rescue Error::RequestFailed => e
@@ -40,18 +34,7 @@ module JSONAPI
         def all
           raise Error::NoEndpointDefined unless respond_to?(:endpoint)
 
-          # TODO: handle API error
-# puts "---------"
-# puts "[all:get response]"
-# puts "[all:get response] path: #{endpoint}"
-# x = connection.get(path: endpoint)
-# pp x
-# collection = parse(x)
-# puts "---------"
-# puts "[all:parsed collection]"
-# pp collection
           parse(connection.get(path: endpoint)).map do |attributes|
-# collection.map do |attributes|
             new(attributes).tap { |obj| obj.__send__(:exists!) }
           end
         rescue Excon::Error::Socket => e
@@ -179,11 +162,6 @@ module JSONAPI
       def destroy!
         raise Error::NotDestroyed unless persisted? && id?
 
-# puts "---------"
-# puts "[destroy!]"
-# x = connection.delete(path: "#{endpoint}/#{id}")
-# pp x
-# result = parse(x)
         parse(connection.delete(path: "#{endpoint}/#{id}"))
 
         @state = :destroyed
@@ -259,15 +237,6 @@ module JSONAPI
 
         (raise Error::ValidationsFailed, errors) unless valid?
 
-# x = connection.post(path: endpoint, body: to_jsonapi)
-# puts "---------"
-# puts "[create!:response]"
-# pp x
-# puts "[create!:body]"
-# pp JSON.parse(x.body)&.with_indifferent_access
-# result = parse(x)
-# puts "[create!:parsed]"
-# pp result
         result = parse(connection.post(path: endpoint, body: to_jsonapi))
 
         self.id = result['id']
@@ -290,13 +259,6 @@ module JSONAPI
 
         (raise Error::ValidationsFailed, errors) unless valid?
 
-# x = connection.put(path: "#{endpoint}/#{id}", body: to_jsonapi)
-# puts "---------"
-# puts "[update!:response]"
-# pp x
-# puts "[update!:parsed]"
-# result = parse(x)
-# pp result
         parse(connection.put(path: "#{endpoint}/#{id}", body: to_jsonapi))
 
         true

@@ -1,5 +1,4 @@
 module JSONAPI
-
   # begin
   #   require 'active_support/inflector'
   # rescue LoadError
@@ -15,7 +14,8 @@ module JSONAPI
   #
   # Initial version from the `active_model_serializers` support for JSONAPI.
   module Deserialization
-    private
+  private
+
     # Helper method to pick an available inflector implementation
     #
     # @return [Object]
