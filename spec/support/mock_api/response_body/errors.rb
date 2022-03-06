@@ -36,13 +36,13 @@ module MockApi
           ] })
         end
 
-        def bad_type
+        def unrecognized_type
           as({ errors: [
             {
               title: 'blank',
               source: { pointer: "/data/attributes/#{MockApi.suite_name}" },
               detail: "param is missing or the value is empty: #{MockApi.suite_name}\n" \
-                      'Did you mean?  bad_type'
+                      'Did you mean?  unrecognized_type'
             }
           ] })
         end

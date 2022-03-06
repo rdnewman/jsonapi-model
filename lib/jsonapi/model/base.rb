@@ -25,7 +25,8 @@ module JSONAPI
             obj.__send__(:exists!)
           end
         rescue Error::RequestFailed => e
-          e.status_symbol == :not_found ? (raise Error::NotFound, id) : nil
+          raise Error::NotFound, id if e.status_symbol == :not_found
+          raise e if e.status_symbol == :unrecognized_status_code
         rescue Excon::Error::Socket => e
           on_socket_error(e)
         end
@@ -103,7 +104,7 @@ module JSONAPI
 
         def serialize_as(type_text)
           unless type_text.is_a?(Symbol) || type_text.is_a?(String)
-            raise Error::InvalidSerailizeType
+            raise Error::InvalidSerializationType
           end
 
           define_singleton_method(:type) do

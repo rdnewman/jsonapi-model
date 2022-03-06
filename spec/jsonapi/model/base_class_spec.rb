@@ -43,11 +43,11 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
 
       it '.find succeeds' do
-        expect(klass.find(existing_id)).to be_an klass
+        expect(klass.find(existing_id)).to be_a klass
       end
 
       it '[] succeeds' do
-        expect(klass[existing_id]).to be_an klass
+        expect(klass[existing_id]).to be_a klass
       end
     end
 
@@ -433,6 +433,81 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         klass.destroy_all!
         expect(klass.destroy_all!).to be_empty
       end
+    end
+  end
+
+  context 'when remote api cannot be connected to' do
+    let(:arbitrary_id) { Faker::Internet.uuid }
+
+    before do
+      allow(klass.connection)
+        .to receive(:get)
+        .and_raise(Excon::Error::Socket.new(Errno::ECONNREFUSED.new))
+
+      allow(klass.connection)
+        .to receive(:post)
+        .and_raise(Excon::Error::Socket.new(Errno::ECONNREFUSED.new))
+
+      allow(klass.connection)
+        .to receive(:delete)
+        .and_raise(Excon::Error::Socket.new(Errno::ECONNREFUSED.new))
+    end
+
+    describe 'raises UnavailableHost when using' do
+      it '.find' do
+        expect { klass.find(arbitrary_id) }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '[]' do
+        expect { klass[arbitrary_id] }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '.all' do
+        expect { klass.all }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '.create' do
+        expect { klass.create(attributes) }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '.create!' do
+        expect { klass.create!(attributes) }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '.destroy_all' do
+        expect { klass.destroy_all }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '.destroy_all!' do
+        expect { klass.destroy_all! }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+    end
+  end
+
+  describe 'when remote api returns an unrecognized status code,' do
+    subject(:request) { klass.find(Faker::Internet.uuid) }
+
+    before do
+      allow(klass.connection)
+        .to receive(:get)
+        .and_return(MockApi::UnrecognizedStatus.weird_status_code_of(status_code: 611))
+    end
+
+    it 'request raises RequestFailed and indicates the reason' do
+      expect { request }
+        .to raise_error JSONAPI::Model::Error::RequestFailed, /unrecognized_status_code/
+    end
+
+    it 'request raises RequestFailed and includes the unrecognized status code' do
+      expect { request }
+        .to raise_error JSONAPI::Model::Error::RequestFailed, /611/
     end
   end
 end

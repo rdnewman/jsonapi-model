@@ -53,12 +53,12 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
     end
 
-    context 'when "serialize_as" specifies an invalid type' do
+    context 'when "serialize_as" specifies an unrecognized type' do
       let(:klass) do
         Class.new(described_class) do
           use_host 'http://127.0.0.1:3000'
           use_endpoint '/v1/narratives/'
-          serialize_as :bad_type
+          serialize_as :unrecognized_type
 
           attr_accessor :name, :short_description, :description, :submission_details
         end
@@ -67,7 +67,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       it '.save! fails' do
         allow(klass.connection)
           .to receive(:post)
-          .and_return(MockApi::ClientError.bad_type)
+          .and_return(MockApi::ClientError.unrecognized_type)
 
         expect { klass.new(valid_attributes).save! }
           .to raise_error JSONAPI::Model::Error::RequestFailed, /unprocessable_entity/
@@ -276,6 +276,82 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       it 'is true if #freeze has been called on the object' do
         object.freeze
         expect(object.frozen?).to eq true
+      end
+    end
+
+    context 'when remote api cannot be connected to and' do
+      let(:arbitrary_id) { Faker::Internet.uuid }
+
+      context 'when creating' do
+        before do
+          allow(klass.connection)
+            .to receive(:post)
+            .and_raise(Excon::Error::Socket.new(Errno::ECONNREFUSED.new))
+        end
+
+        describe 'raises UnavailableHost upon' do
+          it '.save' do
+            expect { object.save }
+              .to raise_error JSONAPI::Model::Error::UnavailableHost
+          end
+
+          it '.save!' do
+            expect { object.save! }
+              .to raise_error JSONAPI::Model::Error::UnavailableHost
+          end
+        end
+      end
+
+      context 'when updating' do
+        before do
+          allow(klass.connection)
+            .to receive(:post)
+            .and_return(
+              MockApi::Successful.created_resource(arbitrary_id, valid_attributes)
+            )
+          object.save! # ensure record was previously saved
+
+          allow(klass.connection)
+            .to receive(:put)
+            .and_raise(Excon::Error::Socket.new(Errno::ECONNREFUSED.new))
+        end
+
+        describe 'raises UnavailableHost upon' do
+          it '.save' do
+            expect { object.save }
+              .to raise_error JSONAPI::Model::Error::UnavailableHost
+          end
+
+          it '.save!' do
+            expect { object.save! }
+              .to raise_error JSONAPI::Model::Error::UnavailableHost
+          end
+        end
+      end
+
+      context 'when destroying' do
+        before do
+          allow(klass.connection)
+            .to receive(:post)
+            .and_return(MockApi::Successful.created_resource(arbitrary_id, valid_attributes))
+          object.save!
+
+          allow(klass.connection)
+            .to receive(:delete)
+            .and_raise(Excon::Error::Socket.new(Errno::ECONNREFUSED.new))
+        end
+
+        describe 'raises UnavailableHost upon' do
+          it '.destroy' do
+            expect { object.destroy }
+              .to raise_error JSONAPI::Model::Error::UnavailableHost
+          end
+
+          it '.destroy!' do
+            expect { object.destroy! }
+              .to raise_error JSONAPI::Model::Error::UnavailableHost
+          end
+        end
       end
     end
   end

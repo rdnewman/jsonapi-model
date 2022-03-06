@@ -1,7 +1,7 @@
 module JSONAPI
   module Model
     module Error
-      class InvalidSerializerType < Base; end
+      class InvalidSerializationType < Base; end
     end
   end
 end
