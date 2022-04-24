@@ -1,8 +1,10 @@
 inherit_from: ../.rubocop.yml
 
 require:
-  - rubocop-performance
   - rubocop-rspec
+
+GitlabSecurity/PublicSend:
+  Enabled: false
 
 Layout/FirstArrayElementIndentation:
   Enabled: true
