@@ -22,7 +22,7 @@ group :test do
 end
 
 group :development, :test do
-  gem 'rails'
+  gem 'rails', '< 7.0'
   # gem 'rake' # for travis-ci
 
   gem 'faker'

@@ -11,7 +11,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       include_examples 'new record attributes'
 
       it 'is invalid' do
-        expect(object.valid?).to eq false
+        expect(object.valid?).to be false
       end
     end
 
@@ -49,7 +49,6 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         end
       end
 
-      # TODO: this feels like it's testing the remote API's behavior, not the gems
       context 'for existing record (update)' do
         include_context 'for updating save when missing attributes'
 

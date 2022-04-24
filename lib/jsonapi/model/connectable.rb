@@ -4,10 +4,17 @@ module JSONAPI
     module Connectable
       extend ActiveSupport::Concern
 
+      # Connection for accessing remote endpoints
+      #
+      # @return [Excon::Connection]
       def connection
         self.class.connection
       end
 
+      # Parses JSONAPI reponses received
+      #
+      # @param response [Excon::Response] unparsed response from remote endpoint
+      # @return [Hash]
       def parse(response, options: {})
         self.class.parse(response, options: options)
       end
@@ -46,6 +53,7 @@ module JSONAPI
         self.class.on_socket_error(error)
       end
 
+      # rubocop:disable Lint/UselessAccessModifier # bug in rubocop-rails; rails does support
       class_methods do
         def connection
           raise Error::NoHostDefined unless respond_to?(:host)
@@ -89,6 +97,7 @@ module JSONAPI
           (code.to_i / 100) == 2
         end
       end
+      # rubocop:enable Lint/UselessAccessModifier
     end
   end
 end

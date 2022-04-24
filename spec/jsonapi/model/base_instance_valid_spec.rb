@@ -11,7 +11,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       include_examples 'new record attributes'
 
       it 'is valid' do
-        expect(object.valid?).to eq true
+        expect(object.valid?).to be true
       end
     end
 
@@ -28,7 +28,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       it 'prohibits #save' do
         object.id = arbitrary_id
 
-        expect(object.save).to eq false
+        expect(object.save).to be false
       end
 
       it 'prohibits #save!' do
@@ -51,7 +51,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
           #   `object.send(method)` is the same as `object.save`
 
           it 'returns true' do
-            expect(object.send(method)).to eq true
+            expect(object.send(method)).to be true
           end
 
           it 'changes id for the object' do
@@ -120,7 +120,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       context 'when not persisted,' do
         describe '#destroy' do
           it 'returns false' do
-            expect(object.destroy).to eq false
+            expect(object.destroy).to be false
           end
 
           it 'does not change the object from being regarded as a new record' do
@@ -170,7 +170,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
           #   `object.send(method)` is the same as `object.destroy`
 
           it 'returns true' do
-            expect(object.send(method)).to eq true
+            expect(object.send(method)).to be true
           end
 
           it 'does not change the object from being regarded as not a new record' do

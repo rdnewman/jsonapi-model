@@ -43,11 +43,11 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
 
       it '.find succeeds' do
-        expect(klass.find(existing_id)).to be_an klass
+        expect(klass.find(existing_id)).to be_a klass
       end
 
       it '[] succeeds' do
-        expect(klass[existing_id]).to be_an klass
+        expect(klass[existing_id]).to be_a klass
       end
     end
 
@@ -111,7 +111,6 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         expect(klass.create(attributes)).to match valid_uuid_format
       end
 
-      # TODO: is this testing the remote api instead of this gem?
       it 'allows the record to be retrieved by the returned id' do
         id = klass.create(attributes)
 
@@ -301,6 +300,10 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
     describe '.destroy_all' do
       before { instances }
 
+      it 'confirm there are records to destroy' do
+        expect(klass.all).not_to be_empty
+      end
+
       it 'returns an Array' do
         expect(klass.destroy_all).to be_an Array
       end
@@ -310,18 +313,18 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
 
       it 'returns collection of records destroyed that matches the original records' do
-        skip "check that this actually works and that original records isn't just empty"
-
-        original_records = ids.map { |id| klass.find(id) }
+        original_records = klass.all
 
         destroyed_records = klass.destroy_all
         expect(destroyed_records).to eq original_records
       end
 
-      # TODO: is this testing the remote API's behavior, not the gems?
       it 'results in no records remaining' do
         klass.destroy_all
 
+        # while we're assuming the remote API did what it was supposed to do,
+        # this spec is really just confirming that the class (`klass`) itself
+        # responds correctly after a destroy_all
         allow(klass.connection)
           .to receive(:get)
           .with(path: '/v1/narratives/')
@@ -331,13 +334,13 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
       it 'returns collection of records that are marked as destroyed' do
         destroyed_records = klass.destroy_all
-        expect(destroyed_records.all?(&:destroyed?)).to eq true
+        expect(destroyed_records.all?(&:destroyed?)).to be true
       end
 
       it 'returns collection of records that are marked as frozen' do
         destroyed_records = klass.destroy_all
 
-        expect(destroyed_records.all?(&:frozen?)).to eq true
+        expect(destroyed_records.all?(&:frozen?)).to be true
       end
 
       it 'returns collection of records that cannot be changed (because frozen)' do
@@ -348,10 +351,9 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         rescue FrozenError => _e
           true
         end
-        expect(unable_to_change).to eq true
+        expect(unable_to_change).to be true
       end
 
-      # TODO: is this testing the remote API's behavior, not the gems?
       it 'succeeds when there are already no records to destroy' do
         klass.destroy_all
 
@@ -365,6 +367,10 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
     describe '.destroy_all!' do
       before { instances }
+
+      it 'confirm there are records to destroy' do
+        expect(klass.all).not_to be_empty
+      end
 
       it 'returns an Array' do
         expect(klass.destroy_all!).to be_an Array
@@ -382,18 +388,18 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
 
       it 'returns collection of records destroyed that matches the original records' do
-        skip "check that this actually works and that original records isn't just empty"
-
-        original_records = ids.map { |id| klass.find(id) }
+        original_records = klass.all
 
         destroyed_records = klass.destroy_all!
         expect(destroyed_records).to eq original_records
       end
 
-      # TODO: this feels like it's testing the remote API's behavior, not the gems
       it 'results in no records remaining' do
         klass.destroy_all!
 
+        # while we're assuming the remote API did what it was supposed to do,
+        # this spec is really just confirming that the class (`klass`) itself
+        # responds correctly after a destroy_all
         allow(klass.connection)
           .to receive(:get)
           .with(path: '/v1/narratives/')
@@ -404,12 +410,12 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
       it 'returns collection of records that are marked as destroyed' do
         destroyed_records = klass.destroy_all!
-        expect(destroyed_records.all?(&:destroyed?)).to eq true
+        expect(destroyed_records.all?(&:destroyed?)).to be true
       end
 
       it 'returns collection of records that are marked as frozen' do
         destroyed_records = klass.destroy_all!
-        expect(destroyed_records.all?(&:frozen?)).to eq true
+        expect(destroyed_records.all?(&:frozen?)).to be true
       end
 
       it 'returns collection of records that cannot be changed (because frozen)' do
@@ -420,10 +426,9 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         rescue FrozenError => _e
           true
         end
-        expect(unable_to_change).to eq true
+        expect(unable_to_change).to be true
       end
 
-      # TODO: is this testing the remote API's behavior, not the gems?
       it 'succeeds when there are already no records to destroy' do
         allow(klass.connection)
           .to receive(:get)
@@ -433,6 +438,81 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         klass.destroy_all!
         expect(klass.destroy_all!).to be_empty
       end
+    end
+  end
+
+  context 'when remote api cannot be connected to' do
+    let(:arbitrary_id) { Faker::Internet.uuid }
+
+    before do
+      allow(klass.connection)
+        .to receive(:get)
+        .and_raise(Excon::Error::Socket.new(Errno::ECONNREFUSED.new))
+
+      allow(klass.connection)
+        .to receive(:post)
+        .and_raise(Excon::Error::Socket.new(Errno::ECONNREFUSED.new))
+
+      allow(klass.connection)
+        .to receive(:delete)
+        .and_raise(Excon::Error::Socket.new(Errno::ECONNREFUSED.new))
+    end
+
+    describe 'raises UnavailableHost when using' do
+      it '.find' do
+        expect { klass.find(arbitrary_id) }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '[]' do
+        expect { klass[arbitrary_id] }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '.all' do
+        expect { klass.all }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '.create' do
+        expect { klass.create(attributes) }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '.create!' do
+        expect { klass.create!(attributes) }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '.destroy_all' do
+        expect { klass.destroy_all }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+
+      it '.destroy_all!' do
+        expect { klass.destroy_all! }
+          .to raise_error JSONAPI::Model::Error::UnavailableHost
+      end
+    end
+  end
+
+  describe 'when remote api returns an unrecognized status code,' do
+    subject(:request) { klass.find(Faker::Internet.uuid) }
+
+    before do
+      allow(klass.connection)
+        .to receive(:get)
+        .and_return(MockApi::UnrecognizedStatus.weird_status_code_of(status_code: 611))
+    end
+
+    it 'request raises RequestFailed and indicates the reason' do
+      expect { request }
+        .to raise_error JSONAPI::Model::Error::RequestFailed, /unrecognized_status_code/
+    end
+
+    it 'request raises RequestFailed and includes the unrecognized status code' do
+      expect { request }
+        .to raise_error JSONAPI::Model::Error::RequestFailed, /611/
     end
   end
 end

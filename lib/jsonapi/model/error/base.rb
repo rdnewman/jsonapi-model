@@ -1,5 +1,6 @@
 module JSONAPI
   module Model
+    # Namespace for JSONAPI::Model custom error types
     module Error
       # Base error type for all JSONAPI::Model custom error types
       class Base < StandardError

@@ -1,7 +1,8 @@
 module JSONAPI
   module Model
     module Error
-      class InvalidSerializerType < Base; end
+      # Error type for when invalid serialization type specified
+      class InvalidSerializationType < Base; end
     end
   end
 end

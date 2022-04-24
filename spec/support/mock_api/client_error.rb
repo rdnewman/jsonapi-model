@@ -9,8 +9,8 @@ module MockApi
         respond_with(422, ResponseBody::Errors.bad_key)
       end
 
-      def bad_type
-        respond_with(422, ResponseBody::Errors.bad_type)
+      def unrecognized_type
+        respond_with(422, ResponseBody::Errors.unrecognized_type)
       end
 
       def descriptions_are_blank
