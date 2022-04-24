@@ -300,6 +300,10 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
     describe '.destroy_all' do
       before { instances }
 
+      it 'confirm there are records to destroy' do
+        expect(klass.all).not_to be_empty
+      end
+
       it 'returns an Array' do
         expect(klass.destroy_all).to be_an Array
       end
@@ -309,9 +313,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
 
       it 'returns collection of records destroyed that matches the original records' do
-        skip "check that this actually works and that original records isn't just empty"
-
-        original_records = ids.map { |id| klass.find(id) }
+        original_records = klass.all
 
         destroyed_records = klass.destroy_all
         expect(destroyed_records).to eq original_records
@@ -320,6 +322,9 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       it 'results in no records remaining' do
         klass.destroy_all
 
+        # while we're assuming the remote API did what it was supposed to do,
+        # this spec is really just confirming that the class (`klass`) itself
+        # responds correctly after a destroy_all
         allow(klass.connection)
           .to receive(:get)
           .with(path: '/v1/narratives/')
@@ -363,6 +368,10 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
     describe '.destroy_all!' do
       before { instances }
 
+      it 'confirm there are records to destroy' do
+        expect(klass.all).not_to be_empty
+      end
+
       it 'returns an Array' do
         expect(klass.destroy_all!).to be_an Array
       end
@@ -379,9 +388,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
 
       it 'returns collection of records destroyed that matches the original records' do
-        skip "check that this actually works and that original records isn't just empty"
-
-        original_records = ids.map { |id| klass.find(id) }
+        original_records = klass.all
 
         destroyed_records = klass.destroy_all!
         expect(destroyed_records).to eq original_records
@@ -390,6 +397,9 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       it 'results in no records remaining' do
         klass.destroy_all!
 
+        # while we're assuming the remote API did what it was supposed to do,
+        # this spec is really just confirming that the class (`klass`) itself
+        # responds correctly after a destroy_all
         allow(klass.connection)
           .to receive(:get)
           .with(path: '/v1/narratives/')
