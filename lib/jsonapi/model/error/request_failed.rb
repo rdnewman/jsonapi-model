@@ -5,6 +5,8 @@ module JSONAPI
       class RequestFailed < Base
         attr_reader :response, :status_code
 
+        # @param [Object] object object raising this exception
+        # @param [Excon::Response] response response from endpoint
         def initialize(object, response)
           @raising_object = object
           @response = response
@@ -13,6 +15,9 @@ module JSONAPI
           super(construct_message)
         end
 
+        # Determines a specific description of error based on received response
+        #
+        # @return [String] specific description
         def description
           return @description if @description
 
@@ -24,6 +29,9 @@ module JSONAPI
                          end
         end
 
+        # Determines mnemonic symbol based on HTTP response status code
+        #
+        # @return [Symbol] symbol from response status code
         def status_symbol
           @status_symbol ||= @raising_object.__send__(:status_code_to_symbol, status_code)
         rescue UnrecognizedStatusCode

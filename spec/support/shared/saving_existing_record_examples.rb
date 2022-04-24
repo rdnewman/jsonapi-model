@@ -27,7 +27,7 @@ RSpec.shared_examples 'saving existing record' do |method|
   end
 
   it 'returns true' do
-    expect(object.send(method)).to eq true
+    expect(object.send(method)).to be true
   end
 
   it 'does not change id for the object' do

@@ -47,7 +47,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       end
 
       it 'is valid' do
-        expect(object.valid?).to eq true
+        expect(object.valid?).to be true
       end
     end
 
@@ -137,7 +137,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         end
 
         it 'confirms subject was originally persisted before update attempt' do
-          expect(object.persisted?).to eq true
+          expect(object.persisted?).to be true
         end
 
         it "confirms subject's #name is to be changed by an update attempt" do
@@ -149,7 +149,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         end
 
         it 'returns false' do
-          expect(object.save).to eq false
+          expect(object.save).to be false
         end
 
         it 'does not change id for the object' do
@@ -216,7 +216,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         end
 
         it 'confirms subject was originally persisted before update attempt' do
-          expect(object.persisted?).to eq true
+          expect(object.persisted?).to be true
         end
 
         it "confirms subject's #name is to be changed by an update attempt" do

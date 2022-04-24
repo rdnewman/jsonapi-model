@@ -1,6 +1,6 @@
 RSpec.shared_examples 'destroying record' do
   it 'returns false' do
-    expect(object.destroy).to eq false
+    expect(object.destroy).to be false
   end
 
   it 'does not change the object from being regarded as a new record' do

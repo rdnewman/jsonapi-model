@@ -111,7 +111,6 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         expect(klass.create(attributes)).to match valid_uuid_format
       end
 
-      # TODO: is this testing the remote api instead of this gem?
       it 'allows the record to be retrieved by the returned id' do
         id = klass.create(attributes)
 
@@ -318,7 +317,6 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         expect(destroyed_records).to eq original_records
       end
 
-      # TODO: is this testing the remote API's behavior, not the gems?
       it 'results in no records remaining' do
         klass.destroy_all
 
@@ -331,13 +329,13 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
       it 'returns collection of records that are marked as destroyed' do
         destroyed_records = klass.destroy_all
-        expect(destroyed_records.all?(&:destroyed?)).to eq true
+        expect(destroyed_records.all?(&:destroyed?)).to be true
       end
 
       it 'returns collection of records that are marked as frozen' do
         destroyed_records = klass.destroy_all
 
-        expect(destroyed_records.all?(&:frozen?)).to eq true
+        expect(destroyed_records.all?(&:frozen?)).to be true
       end
 
       it 'returns collection of records that cannot be changed (because frozen)' do
@@ -348,10 +346,9 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         rescue FrozenError => _e
           true
         end
-        expect(unable_to_change).to eq true
+        expect(unable_to_change).to be true
       end
 
-      # TODO: is this testing the remote API's behavior, not the gems?
       it 'succeeds when there are already no records to destroy' do
         klass.destroy_all
 
@@ -390,7 +387,6 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         expect(destroyed_records).to eq original_records
       end
 
-      # TODO: this feels like it's testing the remote API's behavior, not the gems
       it 'results in no records remaining' do
         klass.destroy_all!
 
@@ -404,12 +400,12 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
       it 'returns collection of records that are marked as destroyed' do
         destroyed_records = klass.destroy_all!
-        expect(destroyed_records.all?(&:destroyed?)).to eq true
+        expect(destroyed_records.all?(&:destroyed?)).to be true
       end
 
       it 'returns collection of records that are marked as frozen' do
         destroyed_records = klass.destroy_all!
-        expect(destroyed_records.all?(&:frozen?)).to eq true
+        expect(destroyed_records.all?(&:frozen?)).to be true
       end
 
       it 'returns collection of records that cannot be changed (because frozen)' do
@@ -420,10 +416,9 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
         rescue FrozenError => _e
           true
         end
-        expect(unable_to_change).to eq true
+        expect(unable_to_change).to be true
       end
 
-      # TODO: is this testing the remote API's behavior, not the gems?
       it 'succeeds when there are already no records to destroy' do
         allow(klass.connection)
           .to receive(:get)

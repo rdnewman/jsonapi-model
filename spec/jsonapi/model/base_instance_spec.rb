@@ -76,15 +76,15 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
     describe 'upon new' do
       it 'is a new record' do
-        expect(object.new_record?).to eq true
+        expect(object.new_record?).to be true
       end
 
       it 'is not persisted' do
-        expect(object.persisted?).to eq false
+        expect(object.persisted?).to be false
       end
 
       it 'is not destroyed' do
-        expect(object.destroyed?).to eq false
+        expect(object.destroyed?).to be false
       end
 
       it 'has no id' do
@@ -166,12 +166,12 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       describe 'using #==' do
         it 'matches itself' do
           # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
-          expect(object == object).to eq true
+          expect(object == object).to be true
           # rubocop:enable Lint/BinaryOperatorWithIdenticalOperands
         end
 
         it 'does not match a different set of attributes' do
-          expect(object == other_object).to eq false
+          expect(object == other_object).to be false
         end
 
         context 'after saving' do
@@ -192,23 +192,23 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
           end
 
           it 'does not match after saving because ids do not match' do
-            expect(object == object_after_saving).to eq false
+            expect(object == object_after_saving).to be false
           end
 
           it 'matches a copy of itself if the ids match' do
             object.id = object_after_saving.id
-            expect(object == object_after_saving).to eq true
+            expect(object == object_after_saving).to be true
           end
         end
       end
 
       describe 'using #eql?' do
         it 'matches itself' do
-          expect(object.eql?(object)).to eq true
+          expect(object.eql?(object)).to be true
         end
 
         it 'does not match a different set of attributes' do
-          expect(object.eql?(other_object)).to eq false
+          expect(object.eql?(other_object)).to be false
         end
 
         context 'after saving' do
@@ -229,12 +229,12 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
           end
 
           it 'does not match after saving because ids do not match' do
-            expect(object.eql?(object_after_saving)).to eq false
+            expect(object.eql?(object_after_saving)).to be false
           end
 
           it 'matches a copy of itself if the ids match' do
             object.id = object_after_saving.id
-            expect(object.eql?(object_after_saving)).to eq true
+            expect(object.eql?(object_after_saving)).to be true
           end
         end
       end
@@ -270,12 +270,12 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
 
     describe '#frozen?' do
       it 'is false if #freeze not yet called on the object' do
-        expect(object.frozen?).to eq false
+        expect(object.frozen?).to be false
       end
 
       it 'is true if #freeze has been called on the object' do
         object.freeze
-        expect(object.frozen?).to eq true
+        expect(object.frozen?).to be true
       end
     end
 

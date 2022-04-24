@@ -3,7 +3,7 @@ RSpec.shared_examples 'invalid initial save' do
   # NOTE: only appropriate for #save, NOT #save!
 
   it 'returns false' do
-    expect(object.save).to eq false
+    expect(object.save).to be false
   end
 
   it 'does not change id for the object' do

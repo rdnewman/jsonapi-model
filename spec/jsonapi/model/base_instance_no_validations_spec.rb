@@ -11,7 +11,7 @@ RSpec.describe JSONAPI::Model::Base, type: :model do
       include_examples 'new record attributes'
 
       it 'is valid (because no validations have been specified)' do
-        expect(object.valid?).to eq true
+        expect(object.valid?).to be true
       end
     end
 
