@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
     # 'documentation_uri' => 'https://www.rubydoc.info/gems/jsonapi-model'
   }
 
-  s.required_ruby_version = '>= 2.6.0'
+  s.required_ruby_version = '>= 2.7.0'
 
   s.add_runtime_dependency 'activemodel', '>= 6.0', '< 8.0'
   s.add_runtime_dependency 'activesupport', '>= 6.0', '< 8.0'
