@@ -7,4 +7,10 @@ and this project adheres to [Semantic Versioning (2.0.0)](https://semver.org/spe
 
 ## [Unreleased]
 
+## [0.0.0] - 2022-02-20
+### Added
+- Initial commit (not ready for use)
+
+
 [Unreleased]: https://github.com/rdnewman/jsonapi-model/compare/v0.0.0...HEAD
+[0.0.0]: https://github.com/rdnewman/jsonapi-model/tree/v0.0.0
