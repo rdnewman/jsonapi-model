@@ -27,8 +27,9 @@ Gem::Specification.new do |s|
   s.metadata = {
     'rubygems_mfa_required' => 'true',
     'source_code_uri' => 'https://github.com/rdnewman/jsonapi-model',
-    'bug_tracker_uri' => 'https://github.com/rdnewman/jsonapi-model/issues'
-    # 'changelog_uri' => 'https://github.com/rdnewman/jsonapi-model/blob/main/CHANGELOG.md',
+    'bug_tracker_uri' => 'https://github.com/rdnewman/jsonapi-model/issues',
+    'security_uri' => 'https://github.com/rdnewman/jsonapi-model/blob/main/SECURITY.md',
+    'changelog_uri' => 'https://github.com/rdnewman/jsonapi-model/blob/main/CHANGELOG.md',
     # 'documentation_uri' => 'https://www.rubydoc.info/gems/jsonapi-model'
   }
 
