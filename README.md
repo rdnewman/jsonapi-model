@@ -15,9 +15,9 @@ This gem helps support writing Rails applications where remote JSONAPI endpoints
 be involved.
 
 Support for writing Rails apps to provide JSONAPI backends for use by other apps is 
-plentiful, but writing a Rails app to use another JSONAPI-based API generally has involved 
-manually deserializing the JSONAPI content from the remote API and then perhaps building an 
-ActiveModel or facade against it.
+plentiful, but writing a Rails app to use another (remote) JSONAPI-based API generally has 
+involved manually deserializing the JSONAPI content from the remote API and then perhaps 
+building an ActiveModel or facade against it.
 
 While this is not too onerous when the remote service provides a ready connector or facade
 for working with their API, those primarily only appear for JavaScript; Ruby support is
