@@ -2,20 +2,25 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+The following versions are being maintained with security updates as necessary:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| 0.1.x   | :white_check_mark: |
+| < 0.1.0 | :x:                |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+Please report vulnerabilities to the [issues](https://github.com/rdnewman/jsonapi-model/issues) section of the [repository](https://github.com/rdnewman/jsonapi-model).
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+For urgent attention, contact the lead maintainer ([richard@newmanworks.com](mailto:richard@newmanworks.com)) and reference this repository and the issue number. The lead maintainer will endeavor to acknowledge your email within 24 hours.
+
+Please report security vulnerabilities in third-party modules to the person or team maintaining the module.
+
+## Disclosure Policy
+
+When a security bug report is received, a fix and release process will be followed, involving these steps:
+
+* Confirm the problem and determine the affected versions.
+* Audit code to find any potential similar problems.
+* Prepare fixes for all releases still under maintenance. These fixes will be released as fast as possible to [RubyGems](https://rubygems.org/).
