@@ -14,10 +14,10 @@ ActiveModel resource model classes using JSONAPI endpoints.
 This gem helps support writing Rails applications where remote JSONAPI endpoints may
 be involved.
 
-Support for writing Rails apps that provide JSONAPI backends to other apps is plentiful,
-but writing a Rails app against another JSONAPI-based API generally has involved manually
-deserializing the JSONAPI content from the remote API and then building an ActiveModel or
-facade against it.
+Support for writing Rails apps to provide JSONAPI backends for use by other apps is 
+plentiful, but writing a Rails app to use another JSONAPI-based API generally has involved 
+manually deserializing the JSONAPI content from the remote API and then perhaps building an 
+ActiveModel or facade against it.
 
 While this is not too onerous when the remote service provides a ready connector or facade
 for working with their API, those primarily only appear for JavaScript; Ruby support is
