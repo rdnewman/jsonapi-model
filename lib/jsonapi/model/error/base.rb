@@ -1,3 +1,6 @@
+# require all error code files
+Dir.glob(File.join('.', '*.rb')).grep_v(/^\.\/base.rb$/).each { |file| require file }
+
 module JSONAPI
   module Model
     # Namespace for JSONAPI::Model custom error types

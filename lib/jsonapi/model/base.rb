@@ -1,4 +1,5 @@
-require 'jsonapi/model/connectable'
+require_relative 'error/base'
+require_relative 'connectable'
 
 module JSONAPI
   module Model
