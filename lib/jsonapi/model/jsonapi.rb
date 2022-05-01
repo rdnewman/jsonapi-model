@@ -1,3 +1,5 @@
+require_relative 'deserialization'
+
 module JSONAPI
   module Model
     # For JSONAPI parsing of response from remote endpoint

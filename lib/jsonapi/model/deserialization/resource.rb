@@ -1,3 +1,5 @@
+require_relative 'relationship'
+
 module JSONAPI
   module Model
     module Deserialization

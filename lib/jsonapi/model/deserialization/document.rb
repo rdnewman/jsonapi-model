@@ -1,3 +1,6 @@
+require_relative 'options'
+require_relative 'resource'
+
 module JSONAPI
   module Model
     module Deserialization

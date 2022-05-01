@@ -1,3 +1,6 @@
+require 'excon'
+require_relative 'jsonapi'
+
 module JSONAPI
   module Model
     # Supports mechanics of connecting with remote endpoint

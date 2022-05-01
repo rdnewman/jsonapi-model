@@ -1,3 +1,5 @@
+require_relative 'deserialization/document'
+
 module JSONAPI
   module Model
     # The logic for the Deserialization model was first inspired by Stas Sușcov's
